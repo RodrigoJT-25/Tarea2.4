@@ -39,6 +39,10 @@ if uploaded_file is not None:
             numeric_cols,
             default=numeric_cols
         )
+        #Cambios codigo
+        max_iter = st.number_input('Ingres ael prime numero',value=0)
+        n_init = st.number_input('Ingres ael prime numero', value=0)
+        random_state = st.number_input('Ingres ael prime numero', value=0)
 
 
         # ParÃ¡metros de clustering
@@ -47,7 +51,7 @@ if uploaded_file is not None:
 
         # --- Datos y modelo ---
         X = data[selected_cols]
-        kmeans = KMeans(n_clusters=k,init='k-means++', max_iter=300, n_init=10, random_state=0)
+        kmeans = KMeans(n_clusters=k,init='k-means++', max_iter, n_init, random_state)
         #kmeans = KMeans(n_clusters=k, random_state=42)
         kmeans.fit(X)
         data['Cluster'] = kmeans.labels_
