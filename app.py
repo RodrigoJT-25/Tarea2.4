@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 
 # ConfiguraciÃ³n de la app
 st.set_page_config(page_title="K-Means con PCA y Comparativa", layout="wide")
-st.title("ðŸŽ¯ Clustering Interactivo con K-Means y PCA (ComparaciÃ³n Antes/DespuÃ©s)")
+st.title("ðŸŽ¯ Clustering Interactivo con K-Means y PCA (Comparacion Antes/Despues)")
 st.write("""
-Sube tus datos, aplica **K-Means**, y observa cÃ³mo el algoritmo agrupa los puntos en un espacio reducido con **PCA (2D o 3D)**.  
-TambiÃ©n puedes comparar la distribuciÃ³n **antes y despuÃ©s** del clustering.
+Sube tus datos, aplica **K-Means**, y observa como el algoritmo agrupa los puntos en un espacio reducido con **PCA (2D o 3D)**.  
+Tambien puedes comparar la distribucion **antes y despues** del clustering.
 """)
 
 # --- Subir archivo ---
@@ -40,19 +40,19 @@ if uploaded_file is not None:
             default=numeric_cols
         )
         #Cambios codigo
-        numer1 = st.number_input('Ingres ael prime numero',value=0)
-        numer2 = st.number_input('Ingres ael prime numero', value=0)
-        numer3 = st.number_input('Ingres ael prime numero', value=0)
+        numer1 = st.number_input('Ingresa el prime numero',value=0, key="num1")
+        numer2 = st.number_input('Ingresa el prime numero', value=0, key="num2")
+        numer3 = st.number_input('Ingresa el prime numero', value=0, key="num3")
 
 
         # ParÃ¡metros de clustering
-        k = st.sidebar.slider("NÃºmero de clusters (k):", 1, 10, 3)
-        n_components = st.sidebar.radio("VisualizaciÃ³n PCA:", [2, 3], index=0)
+        k = st.sidebar.slider("Numero de clusters (k):", 1, 10, 3)
+        n_components = st.sidebar.radio("Visualizacion PCA:", [2, 3], index=0)
 
         # --- Datos y modelo ---
         X = data[selected_cols]
         kmeans = KMeans(n_clusters=k,init='k-means++', max_iter=numer1, n_init=numer2, random_state=numer3)
-        #kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans = KMeans(n_clusters=k, random_state=42)
         kmeans.fit(X)
         data['Cluster'] = kmeans.labels_
 
@@ -64,7 +64,7 @@ if uploaded_file is not None:
         pca_df['Cluster'] = data['Cluster']
 
         # --- VisualizaciÃ³n antes del clustering ---
-        st.subheader("ðŸ“Š DistribuciÃ³n original (antes de K-Means)")
+        st.subheader(" Distribucion original (antes de K-Means)")
         if n_components == 2:
             fig_before = px.scatter(
                 pca_df,
