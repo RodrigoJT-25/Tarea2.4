@@ -9,19 +9,19 @@ import matplotlib.pyplot as plt
 
 # ConfiguraciÃ³n de la app
 st.set_page_config(page_title="K-Means con PCA y Comparativa", layout="wide")
-st.title("ðŸŽ¯ Clustering Interactivo con K-Means y PCA (Comparacion Antes/Despues)")
+st.title("lustering Interactivo con K-Means y PCA (comparacion Antes/despues)")
+st.subheader("Rodrigo Jimenez ")
 st.write("""
 Sube tus datos, aplica **K-Means**, y observa como el algoritmo agrupa los puntos en un espacio reducido con **PCA (2D o 3D)**.  
-Tambien puedes comparar la distribucion **antes y despues** del clustering.
+tambien puedes comparar la distribuciones **antes y despues del clustering.
 """)
 
 # --- Subir archivo ---
-st.sidebar.header("ðŸ“‚ Subir datos")
-uploaded_file = st.sidebar.file_uploader("Selecciona tu archivo CSV", type=["csv"])
+uploaded_file = st.file_uploader("Sube un archivo CSV con tus datos", type=["csv"])
 
 if uploaded_file is not None:
     data = pd.read_csv(uploaded_file)
-    st.success("âœ… Archivo cargado correctamente.")
+    st.success("… Archivo cargado correctamente.")
     st.write("### Vista previa de los datos:")
     st.dataframe(data.head())
 
@@ -29,30 +29,42 @@ if uploaded_file is not None:
     numeric_cols = data.select_dtypes(include=['float64', 'int64']).columns.tolist()
 
     if len(numeric_cols) < 2:
-        st.warning("âš ï¸ El archivo debe contener al menos dos columnas numÃ©ricas.")
+        st.warning("El archivo debe contener al menos dos columnas numericas.")
     else:
-        st.sidebar.header("âš™ï¸ ConfiguraciÃ³n del modelo")
+        st.sidebar.header("configuracion del modelo")
 
         # Seleccionar columnas a usar
         selected_cols = st.sidebar.multiselect(
-            "Selecciona las columnas numÃ©ricas para el clustering:",
+            "Selecciona las columnas numericas para el clustering:",
             numeric_cols,
             default=numeric_cols
         )
-        #Cambios codigo
-        numer1 = st.number_input('Ingresa el prime numero',value=0, key="num1")
-        numer2 = st.number_input('Ingresa el prime numero', value=0, key="num2")
-        numer3 = st.number_input('Ingresa el prime numero', value=0, key="num3")
+
+    if len(selected_cols)>= 2:
 
 
-        # ParÃ¡metros de clustering
-        k = st.sidebar.slider("Numero de clusters (k):", 1, 10, 3)
-        n_components = st.sidebar.radio("Visualizacion PCA:", [2, 3], index=0)
+        k = st.sidebar.slider("numero de clusters (k):", 1, 10, 3)
+        n_components = st.sidebar.radio("visualizacion de PCA:", [2, 3], index=0)
 
         # --- Datos y modelo ---
         X = data[selected_cols]
-        kmeans = KMeans(n_clusters=k,init='k-means++', max_iter=numer1, n_init=numer2, random_state=numer3)
-        kmeans = KMeans(n_clusters=k, random_state=42)
+
+        # aqui es en dond se va cambiar el codigo para meter nuevos parametros
+        n = st.number_input(f'ingresa el valor de la varibale n_init: ', value=1, min_value=1)
+        m = st.number_input(f'ingresa el valor de maximas iteraciones: ', value=300,min_value=1)
+        r = st.number_input(f'ingresa el valor de random state: ', value=0,min_value=0)
+
+        #metodo para cambiar el init
+        on = st.toggle("Elegir init")
+        if on:
+            st.write("init = k-means++")
+            inn = 'k-means++'
+        else:
+            st.write("init = random")
+            inn = 'random'
+
+        kmeans = KMeans(n_clusters=k,init=inn, max_iter=m, n_init=n, random_state=r)
+        #kmeans = KMeans(n_clusters=k, random_state=42)
         kmeans.fit(X)
         data['Cluster'] = kmeans.labels_
 
@@ -63,8 +75,11 @@ if uploaded_file is not None:
         pca_df = pd.DataFrame(X_pca, columns=pca_cols)
         pca_df['Cluster'] = data['Cluster']
 
+
+
         # --- VisualizaciÃ³n antes del clustering ---
-        st.subheader(" Distribucion original (antes de K-Means)")
+        st.subheader("distribucion original (antes de K-Means)")
+
         if n_components == 2:
             fig_before = px.scatter(
                 pca_df,
@@ -85,7 +100,7 @@ if uploaded_file is not None:
         st.plotly_chart(fig_before, use_container_width=True)
 
         # --- VisualizaciÃ³n despuÃ©s del clustering ---
-        st.subheader(f"ðŸŽ¯ Datos agrupados con K-Means (k = {k})")
+        st.subheader(f"Datos agrupados con K-Means (k = {k})")
         if n_components == 2:
             fig_after = px.scatter(
                 pca_df,
@@ -105,16 +120,18 @@ if uploaded_file is not None:
                 title="Clusters visualizados en 3D con PCA",
                 color_discrete_sequence=px.colors.qualitative.Vivid
             )
+
+
         st.plotly_chart(fig_after, use_container_width=True)
 
         # --- Centroides ---
-        st.subheader("ðŸ“ Centroides de los clusters (en espacio PCA)")
+        st.subheader("Centroides de los clusters (en espacio PCA)")
         centroides_pca = pd.DataFrame(pca.transform(kmeans.cluster_centers_), columns=pca_cols)
         st.dataframe(centroides_pca)
 
         # --- MÃ©todo del Codo ---
-        st.subheader("ðŸ“‰ MÃ©todo del Codo (Elbow Method)")
-        if st.button("Calcular nÃºmero Ã³ptimo de clusters"):
+        st.subheader("metodo del Codo (Elbow Method)")
+        if st.button("Calcular numero optimo de clusters"):
             inertias = []
             K = range(1, 11)
             for i in K:
@@ -124,26 +141,28 @@ if uploaded_file is not None:
 
             fig2, ax2 = plt.subplots(figsize=(8, 6))
             plt.plot(K, inertias, 'bo-')
-            plt.title('MÃ©todo del Codo')
-            plt.xlabel('NÃºmero de Clusters (k)')
+            plt.title('metodo del Codo')
+            plt.xlabel('numero de Clusters (k)')
             plt.ylabel('Inercia (SSE)')
             plt.grid(True)
             st.pyplot(fig2)
 
         # --- Descarga de resultados ---
-        st.subheader("ðŸ’¾ Descargar datos con clusters asignados")
+        st.subheader("Descargar datos con clusters asignados")
         buffer = BytesIO()
         data.to_csv(buffer, index=False)
         buffer.seek(0)
         st.download_button(
-            label="â¬‡ï¸ Descargar CSV con Clusters",
+            label="Descargar CSV con Clusters",
             data=buffer,
             file_name="datos_clusterizados.csv",
             mime="text/csv"
         )
+    else:
+        st.warning("debe escoger al menos dos columnas numericas y 3 para PCA 3D.")
 
 else:
-    st.info("ðŸ‘ˆ Carga un archivo CSV en la barra lateral para comenzar.")
+    st.info("Carga un archivo CSV en la barra lateral para comenzar.")
     st.write("""
     **Ejemplo de formato:**
     | Ingreso_Anual | Gasto_Tienda | Edad |
